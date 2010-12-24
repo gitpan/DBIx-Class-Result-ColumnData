@@ -13,11 +13,11 @@ It defined relationships methods to extract columns data only of relationships
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 
 =head1 SYNOPSIS
@@ -121,6 +121,29 @@ sub register_relationships_columns_data {
     }
      if ($relation_type eq 'multi')
     {
+      my $method_name = $relation.'_columns_data';
+      my $method_code = sub {
+
+        my $self = shift;
+        my @relobjects = $self->$relation;
+        my @relobjects_columns_data = ();
+        foreach my $relobject (@relobjects)
+        {
+          push @relobjects_columns_data, $relobject->columns_data();
+        }
+        return @relobjects_columns_data;
+      };
+      {
+        no strict 'refs';
+        *{"${class}::${method_name}"} = $method_code;
+      }
+    }
+  }
+  if ($class->isa('DBIx::Class::IntrospectableM2M'))
+  {
+    foreach my $m2m_rel (keys(%{$class->_m2m_metadata}))
+    {
+      my $relation = $class->_m2m_metadata->{$m2m_rel}->{accessor};
       my $method_name = $relation.'_columns_data';
       my $method_code = sub {
 
