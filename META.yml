@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               DBIx-Class-Result-ColumnData
-version:            0.03
+version:            0.04
 abstract:           ~
 author:
     - Nicolas Oudard <nicolas@oudard.org>
