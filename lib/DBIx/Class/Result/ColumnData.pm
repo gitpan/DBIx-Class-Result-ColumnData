@@ -14,11 +14,11 @@ It defined relationships methods to extract columns data only of relationships
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 
 =head1 SYNOPSIS
@@ -43,6 +43,10 @@ you will use get_column_data functions on instance of MyClass
     $my_class->get_column_data
     $my_class->I<relationships>_column_data
 
+you can also hide some columns with parameter hide_field on columns definition
+
+    __PACKAGE__->add_columns("field_to_hide", {.... hide_field => 1});
+
 =head2 columns_data
 
 columns_data is decrecated, use get_column_data
@@ -59,17 +63,30 @@ sub columns_data
 
 =head2 get_column_data
 
-return only column_data from an object DBIx::Class::Core
+return only column_data from an object DBIx::Class::Core without hide_field
 
 =cut
 
 sub get_column_data
 {
-  my $obj = shift;
-  my $rh_data =  $obj->{_column_data};
-  foreach my $key (keys %{$rh_data})
+  my ($obj, $options) = @_;
+  my $rh_data;
+  my $class = ref $obj;
+#  my $columns = $obj->{_result_source}->{_columns};
+  foreach my $key (keys %{$obj->{_column_data}})
   {
-    $rh_data->{$key} = $obj->_display_date($key) if (ref($rh_data->{$key}) eq 'DateTime');
+    unless ($options->{with_all_fields})
+    {
+      next if ($class->column_info($key)->{hide_field});
+    }
+    if (ref($obj->{_column_data}->{$key}) eq 'DateTime')
+    {
+      $rh_data->{$key} = $obj->_display_date($key) ;
+    }
+    else
+    {
+      $rh_data->{$key} = $obj->{_column_data}->{$key};
+    }
   }
   if ($obj->isa('DBIx::Class::Result::Validation') && defined($obj->result_errors))
   {
@@ -78,6 +95,18 @@ sub get_column_data
   return $rh_data;
 }
 
+=head2 get_all_column_data
+
+return only column_data from an object DBIx::Class::Core with hide_field
+
+=cut
+
+sub get_all_column_data
+{
+  my $obj = shift;
+  my $options = {with_all_fields => 1};
+  return $obj->get_column_data($options);
+}
 
 sub _display_date
 {
