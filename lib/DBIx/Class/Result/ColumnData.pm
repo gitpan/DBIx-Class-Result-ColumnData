@@ -14,11 +14,11 @@ It defined relationships methods to extract columns data only of relationships
 
 =head1 VERSION
 
-Version 0.12
+Version 0.13
 
 =cut
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 
 =head1 SYNOPSIS
@@ -79,13 +79,13 @@ sub get_column_data
         {
             next if ($class->column_info($key)->{hide_field});
         }
-        if (ref($obj->{_column_data}->{$key}) eq 'DateTime')
+        if (ref($obj->get_column($key)) eq 'DateTime')
         {
             $rh_data->{$key} = $obj->_display_date($key) ;
         }
         else
         {
-            $rh_data->{$key} = $obj->{_column_data}->{$key};
+            $rh_data->{$key} = $obj->get_column($key);
         }
     }
     if ($obj->isa('DBIx::Class::Result::VirtualColumns'))
